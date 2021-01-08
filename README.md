@@ -48,7 +48,7 @@ Commands:
   load-config
 ```
 
-The primary command is `liquidtime load-config -c <configfile>, which will
+The primary command is `liquidtime load-config -c <configfile>`, which will
 parse a YAML configuration file (such as
 [sample config file](sample_config.yaml)) and add all the entries within to
 the user associated with your API token.
