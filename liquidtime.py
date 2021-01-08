@@ -85,7 +85,7 @@ def helpme():
     "--token", '-t',
     envvar='LP_TOKEN',
     required=True,
-    prompt='TOKEN',
+    prompt='LP_TOKEN',
     help='Your LP API token'
 )
 @click.option(
@@ -139,7 +139,3 @@ def load_config(token, config):
 
 helpme.add_command(get_timesheet_entries)
 helpme.add_command(load_config)
-
-
-if __name__ == '__main__':
-    helpme()

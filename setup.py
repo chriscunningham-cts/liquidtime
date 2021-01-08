@@ -10,6 +10,6 @@ setup(
     ],
     entry_points='''
         [console_scripts]
-        liquidtime=liquidtime:get_timesheets
+        liquidtime=liquidtime:helpme
     ''',
 )
