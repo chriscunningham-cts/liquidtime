@@ -6,14 +6,9 @@ import json
 import datetime
 import yaml
 
-workspace_id = 181807
-
 
 def headers(token):
-    headers = {
-        'Authorization': f"Bearer {token}",
-    }
-    return headers
+    return {'Authorization': f"Bearer {token}"}
 
 
 def get_member_id(token):
@@ -33,7 +28,7 @@ def get_account(token):
     return account['id']
 
 
-def find_task(token, query):
+def find_task(workspace_id, token, query):
     queries_url = f"https://app.liquidplanner.com/api/v1/workspaces/{workspace_id}/treeitems"
     params = {'filter[]': f"name={query.replace(' ', '_')}"}
     results = requests.get(
@@ -41,6 +36,7 @@ def find_task(token, query):
     ).json()
     # click.echo(json.dumps(results, indent=4, sort_keys=True))
 
+    # the activity_id can live at one of two levels
     toplevel = [
         result for result in results if result['activity_id'] is not None
     ]
@@ -48,12 +44,15 @@ def find_task(token, query):
         # there is only one activity
         return toplevel[0]['activity_id'], toplevel[0]['id']
     else:
-        # there are sub-activities, which all have the same assignment id
+        # there are sub-activities, which all have the same activity_id
         for assignment in results[0]['assignments']:
             return assignment['activity_id'], results[0]['id']
 
 
-def submit_timesheet_entry(token, activity_id, task_id, note, work, work_performed_on, append=False):
+def submit_timesheet_entry(
+    workspace_id, token, activity_id, task_id,
+    note, work, work_performed_on, append
+):
     time_submit_url = f"https://app.liquidplanner.com/api/v1/workspaces/{workspace_id}/tasks/{task_id}/track_time"
     member_id = get_account(token)
     payload = {
@@ -65,7 +64,6 @@ def submit_timesheet_entry(token, activity_id, task_id, note, work, work_perform
     }
     click.echo(payload)
     # Need to confirm first
-    # Also need to overwrite rather than appending by default
 
     params = {'append': append}
 
@@ -89,11 +87,18 @@ def helpme():
     help='Your LP API token'
 )
 @click.option(
+    "--workspace_id", '-w',
+    envvar='LP_WORKSPACE_ID',
+    required=True,
+    prompt='LP_WORKSPACE_ID',
+    help='Your LP workspace ID'
+)
+@click.option(
     "--date", '-d',
     help='The date of the work',
     default=datetime.date.today()
 )
-def get_timesheet_entries(token, date):
+def get_timesheet_entries(workspace_id, token, date):
     timesheets_url = f"https://app.liquidplanner.com/api/v1/workspaces/{workspace_id}/timesheet_entries"
     params = {'member_id': get_member_id(token)}
     if date:
@@ -114,12 +119,20 @@ def get_timesheet_entries(token, date):
     prompt='LP_TOKEN',
     help='Your LP API token'
 )
-@ click.option(
+@click.option(
+    "--workspace_id", '-w',
+    envvar='LP_WORKSPACE_ID',
+    required=True,
+    prompt='LP_WORKSPACE_ID',
+    help='Your LP workspace ID'
+)
+@click.option(
     "--config", '-c',
     help='The YAML file containing your timesheet information',
     required=True,
 )
-def load_config(token, config):
+@click.option('--append/--no-append', '-a', default=False)
+def load_config(workspace_id, token, config, append):
     # click.echo(f"Parsing timesheet file {config}...")
     with open(config, 'r') as stream:
         bulk_data = yaml.safe_load(stream)
@@ -127,13 +140,15 @@ def load_config(token, config):
     # click.echo(bulk_data)
 
     for task in bulk_data['tasks']:
-        activity_id, task_id = find_task(token, task['task_name'])
+        activity_id, task_id = find_task(
+            workspace_id, token, task['task_name']
+        )
         note = task['note'] if 'note' in task else None
         work = task['work']
         work_performed_on = task['work_performed_on']
-        append = False
         submit_timesheet_entry(
-            token, activity_id, task_id, note, work, work_performed_on, append
+            workspace_id, token, activity_id, task_id,
+            note, work, work_performed_on, append
         )
 
 
