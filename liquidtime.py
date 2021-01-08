@@ -19,15 +19,6 @@ def get_member_id(token):
     return account['id']
 
 
-def get_account(token):
-    account_url = 'https://app.liquidplanner.com/api/v1/account'
-    account = requests.get(
-        account_url, headers=headers(token)
-    ).json()
-    # click.echo(json.dumps(account, indent=4, sort_keys=True))
-    return account['id']
-
-
 def find_task(workspace_id, token, query):
     queries_url = f"https://app.liquidplanner.com/api/v1/workspaces/{workspace_id}/treeitems"
     params = {'filter[]': f"name={query.replace(' ', '_')}"}
@@ -54,7 +45,7 @@ def submit_timesheet_entry(
     note, work, work_performed_on, append
 ):
     time_submit_url = f"https://app.liquidplanner.com/api/v1/workspaces/{workspace_id}/tasks/{task_id}/track_time"
-    member_id = get_account(token)
+    member_id = get_member_id(token)
     payload = {
         'activity_id': activity_id,
         'member_id': member_id,
