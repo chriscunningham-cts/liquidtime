@@ -69,6 +69,7 @@ The tool will overwrite existing data for the task in question on a given day.
 ## TODO
 
 -   Implement a confirmation check and bypass.
+-   Implement submission of the timesheet on confirmation.
 -   Permit relative or regular dates in the config file instead of absolute
     ones, e.g. `Monday`.
 -   Implement additional submission fields, e.g. estimates.
