@@ -1,7 +1,7 @@
 # `liquidtime` README
 
 This is a simple Python application which can be used to fill in Liquid Planner
-timesheets.
+timesheets. It was written for internal use by [CTS](https://cts.co).
 
 ## Installation
 
@@ -13,9 +13,11 @@ timesheets.
 
 ## Credentials
 
-First, create an API token by logging into the LP Web interface, clicking on
-your user icon and selecting `Settings -> My Settings -> My API Tokens`, then
-clicking `Add New Token`, filling in a name and clicking `Save`.
+1.  Set the `LP_WORKSPACE_ID` environment variable to the Liquid Planner
+    workspace you're using. For CTS this is `181807`.
+2.  Create an API token by logging into the LP Web interface, clicking on
+    your user icon and selecting `Settings -> My Settings -> My API Tokens`,
+    then clicking `Add New Token`, filling in a name and clicking `Save`.
 
 You can immediately test if it's working by querying your current timesheet:
 
@@ -66,7 +68,6 @@ The tool will overwrite existing data for the task in question on a given day.
 
 ## TODO
 
--   Implement the `append` flag.
 -   Implement a confirmation check and bypass.
 -   Permit relative or regular dates in the config file instead of absolute
     ones, e.g. `Monday`.
