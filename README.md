@@ -68,6 +68,8 @@ The tool will overwrite existing data for the task in question on a given day.
 
 ## TODO
 
+-   Implement error checking and better positive confirmation rather than
+    crashing on failure and echoing arbitrary responses on success.
 -   Implement a confirmation check and bypass.
 -   Implement submission of the timesheet on confirmation.
 -   Permit relative or regular dates in the config file instead of absolute
