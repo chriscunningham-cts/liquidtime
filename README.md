@@ -49,7 +49,7 @@ Commands:
 ```
 
 The primary command is `liquidtime load-config -c <configfile>`, which will
-parse a YAML configuration file (such as
+parse a YAML configuration file (such as the
 [sample config file](sample_config.yaml)) and add all the entries within to
 the user associated with your API token.
 
@@ -58,7 +58,7 @@ the user associated with your API token.
 See the [sample config file](sample_config.yaml) file for example
 configuration. Each entry in the `tasks` list must contain the following:
 
--   `task_name`: The task name. This is the unique name of the task to record
+-   `task_name`: This is the unique name of the task to record
     time against in Liquid Planner. You can obtain this through the Web
     interface.
 -   `work`: The number of hours recorded against the task that day.
