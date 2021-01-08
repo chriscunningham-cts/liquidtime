@@ -6,13 +6,15 @@ import json
 import datetime
 import yaml
 
+api_path = 'https://app.liquidplanner.com/api/v1'
+
 
 def headers(token):
     return {'Authorization': f"Bearer {token}"}
 
 
 def get_member_id(token):
-    account_url = 'https://app.liquidplanner.com/api/v1/account'
+    account_url = f"{api_path}/account"
     account = requests.get(
         account_url, headers=headers(token)
     ).json()
@@ -20,7 +22,7 @@ def get_member_id(token):
 
 
 def find_task(workspace_id, token, query):
-    queries_url = f"https://app.liquidplanner.com/api/v1/workspaces/{workspace_id}/treeitems"
+    queries_url = f"{api_path}/workspaces/{workspace_id}/treeitems"
     params = {'filter[]': f"name={query.replace(' ', '_')}"}
     results = requests.get(
         queries_url, headers=headers(token), params=params
@@ -44,7 +46,7 @@ def submit_timesheet_entry(
     workspace_id, token, activity_id, task_id,
     note, work, work_performed_on, append
 ):
-    time_submit_url = f"https://app.liquidplanner.com/api/v1/workspaces/{workspace_id}/tasks/{task_id}/track_time"
+    time_submit_url = f"{api_path}/workspaces/{workspace_id}/tasks/{task_id}/track_time"
     member_id = get_member_id(token)
     payload = {
         'activity_id': activity_id,
@@ -90,7 +92,7 @@ def helpme():
     default=datetime.date.today()
 )
 def get_timesheet_entries(workspace_id, token, date):
-    timesheets_url = f"https://app.liquidplanner.com/api/v1/workspaces/{workspace_id}/timesheet_entries"
+    timesheets_url = f"{api_path}/workspaces/{workspace_id}/timesheet_entries"
     params = {'member_id': get_member_id(token)}
     if date:
         params['start_date'] = params['end_date'] = date
