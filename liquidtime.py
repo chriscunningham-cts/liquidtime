@@ -42,11 +42,11 @@ def find_task(workspace_id, token, query):
             return assignment['activity_id'], results[0]['id']
 
 
-def submit_timesheet_entry(
+def add_timesheet_entry(
     workspace_id, token, activity_id, task_id,
     note, work, work_performed_on, append, confirm
 ):
-    time_submit_url = f"{api_path}/workspaces/{workspace_id}/tasks/{task_id}/track_time"
+    time_add_url = f"{api_path}/workspaces/{workspace_id}/tasks/{task_id}/track_time"
     member_id = get_member_id(token)
     payload = {
         'activity_id': activity_id,
@@ -55,20 +55,38 @@ def submit_timesheet_entry(
         'work': work,
         'work_performed_on': work_performed_on,
     }
-    click.echo(f"Adding the following work:\n{payload}")
+    click.echo()
     if not confirm:
-        if not click.confirm('Do you want to continue?'):
-            click.echo('Work not submitted.')
-            return
+        if not click.confirm(
+            f"Adding the following work:\n{payload}\nDo you want to continue?"
+        ):
+            click.echo('Work not added to timesheet.')
+            return None
 
     params = {'append': append}
 
     postresult = requests.post(
-        time_submit_url, headers=headers(token), params=params, data=payload
+        time_add_url, headers=headers(token), params=params, data=payload
     ).json()
     click.echo(
-        f"Added to timecard {postresult['timesheet_entry']['timesheet_id']}."
+        f"Added to timesheet {postresult['timesheet_entry']['timesheet_id']}."
     )
+    return postresult['timesheet_entry']['timesheet_id']
+
+
+def submit_timesheet(workspace_id, token, timesheet_id, confirm):
+    timesheet_submit_url = f"{api_path}/workspaces/{workspace_id}/timesheets/{timesheet_id}/submit"
+    if not confirm:
+        if not click.confirm(
+            f"Do you want to submit timesheet {timesheet_id} as complete?"
+        ):
+            click.echo('Work not added to timesheet.')
+            return False
+    postresult = requests.post(
+        timesheet_submit_url, headers=headers(token)
+    ).json()
+    click.echo(f"Timesheet {timesheet_id} submitted.\n{postresult}")
+    return True
 
 
 @click.group()
@@ -146,6 +164,7 @@ def load_config(workspace_id, token, config, append, confirm):
 
     # click.echo(bulk_data)
 
+    timesheets = []
     for task in bulk_data['tasks']:
         activity_id, task_id = find_task(
             workspace_id, token, task['task_name']
@@ -153,10 +172,15 @@ def load_config(workspace_id, token, config, append, confirm):
         note = task['note'] if 'note' in task else None
         work = task['work']
         work_performed_on = task['work_performed_on']
-        submit_timesheet_entry(
+        timesheets.append(add_timesheet_entry(
             workspace_id, token, activity_id, task_id,
             note, work, work_performed_on, append, confirm
-        )
+        ))
+    # remove duplicates in list (and None, for non-confirmed additions)
+    unique_timesheets = list(set([t for t in timesheets if t is not None]))
+    click.echo(f"Timesheets to submit:\n{unique_timesheets}")
+    for timesheet_id in unique_timesheets:
+        submit_timesheet(workspace_id, token, timesheet_id, confirm)
 
 
 helpme.add_command(get_timesheet_entries)

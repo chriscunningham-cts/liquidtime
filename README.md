@@ -75,11 +75,14 @@ than one task per day.
 
 The tool will overwrite existing data for the task in question on a given day.
 
+Once add work has been added, the tool will prompt you to submit any timesheets
+it has added to. Note that this prevents further additions, so only do this
+once you're ready to submit a complete timesheet.
+
 ## TODO
 
 -   Implement error checking and better positive confirmation rather than
     crashing on failure and echoing arbitrary responses on success.
--   Implement submission of the timesheet on confirmation.
 -   Permit relative or regular dates in the config file instead of absolute
     ones, e.g. `Monday`.
 -   Implement additional submission fields, e.g. estimates.
