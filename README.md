@@ -55,7 +55,9 @@ the user associated with your API token. For each work entry you will be
 prompted to confirm before the work is added; the `--confirm` flag will bypass
 this.
 
-The tool will overwrite existing data for the task in question on a given day.
+The tool will overwrite existing data for the task in question on a given day
+unless the `--append` option is used, in which case it will append time to
+existing work on a particular day.
 
 Once add work has been added, the tool will prompt you to submit any timesheets
 it has added to. Note that this prevents further additions, so only do this
