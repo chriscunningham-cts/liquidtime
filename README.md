@@ -55,6 +55,12 @@ the user associated with your API token. For each work entry you will be
 prompted to confirm before the work is added; the `--confirm` flag will bypass
 this.
 
+The tool will overwrite existing data for the task in question on a given day.
+
+Once add work has been added, the tool will prompt you to submit any timesheets
+it has added to. Note that this prevents further additions, so only do this
+once you're ready to submit a complete timesheet.
+
 ## Timesheet files
 
 See the [sample config file](sample_config.yaml) file for example
@@ -72,12 +78,6 @@ You can additionally set the following per-task:
 
 There can be multiple entries for a single date, to account for working on more
 than one task per day.
-
-The tool will overwrite existing data for the task in question on a given day.
-
-Once add work has been added, the tool will prompt you to submit any timesheets
-it has added to. Note that this prevents further additions, so only do this
-once you're ready to submit a complete timesheet.
 
 ## TODO
 
