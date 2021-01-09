@@ -51,7 +51,9 @@ Commands:
 The primary command is `liquidtime load-config -c <configfile>`, which will
 parse a YAML configuration file (such as the
 [sample config file](sample_config.yaml)) and add all the entries within to
-the user associated with your API token.
+the user associated with your API token. For each work entry you will be
+prompted to confirm before the work is added; the `--confirm` flag will bypass
+this.
 
 ## Timesheet files
 
@@ -77,7 +79,6 @@ The tool will overwrite existing data for the task in question on a given day.
 
 -   Implement error checking and better positive confirmation rather than
     crashing on failure and echoing arbitrary responses on success.
--   Implement a confirmation check and bypass.
 -   Implement submission of the timesheet on confirmation.
 -   Permit relative or regular dates in the config file instead of absolute
     ones, e.g. `Monday`.

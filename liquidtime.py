@@ -44,7 +44,7 @@ def find_task(workspace_id, token, query):
 
 def submit_timesheet_entry(
     workspace_id, token, activity_id, task_id,
-    note, work, work_performed_on, append
+    note, work, work_performed_on, append, confirm
 ):
     time_submit_url = f"{api_path}/workspaces/{workspace_id}/tasks/{task_id}/track_time"
     member_id = get_member_id(token)
@@ -55,15 +55,20 @@ def submit_timesheet_entry(
         'work': work,
         'work_performed_on': work_performed_on,
     }
-    click.echo(payload)
-    # Need to confirm first
+    click.echo(f"Adding the following work:\n{payload}")
+    if not confirm:
+        if not click.confirm('Do you want to continue?'):
+            click.echo('Work not submitted.')
+            return
 
     params = {'append': append}
 
     postresult = requests.post(
         time_submit_url, headers=headers(token), params=params, data=payload
     ).json()
-    click.echo(postresult['timesheet_entry']['timesheet_id'])
+    click.echo(
+        f"Added to timecard {postresult['timesheet_entry']['timesheet_id']}."
+    )
 
 
 @click.group()
@@ -124,8 +129,17 @@ def get_timesheet_entries(workspace_id, token, date):
     help='The YAML file containing your timesheet information',
     required=True,
 )
-@click.option('--append/--no-append', '-a', default=False)
-def load_config(workspace_id, token, config, append):
+@click.option(
+    '--append/--no-append', '-a',
+    default=False,
+    help='Append time to existing entries instead of overwriting',
+)
+@click.option(
+    '--confirm/--no-confirm', '-y',
+    default=False,
+    help='Prompt for confirmation before adding entries',
+)
+def load_config(workspace_id, token, config, append, confirm):
     # click.echo(f"Parsing timesheet file {config}...")
     with open(config, 'r') as stream:
         bulk_data = yaml.safe_load(stream)
@@ -141,7 +155,7 @@ def load_config(workspace_id, token, config, append):
         work_performed_on = task['work_performed_on']
         submit_timesheet_entry(
             workspace_id, token, activity_id, task_id,
-            note, work, work_performed_on, append
+            note, work, work_performed_on, append, confirm
         )
 
 
