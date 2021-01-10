@@ -18,6 +18,7 @@ def get_member_id(token):
     account = requests.get(
         account_url, headers=headers(token)
     ).json()
+    # FIXME: handle error
     return account['id']
 
 
@@ -28,6 +29,7 @@ def find_task(workspace_id, token, query):
         queries_url, headers=headers(token), params=params
     ).json()
     # click.echo(json.dumps(results, indent=4, sort_keys=True))
+    # FIXME: handle error
 
     # the activity_id can live at one of two levels
     toplevel = [
@@ -67,10 +69,15 @@ def add_timesheet_entry(
     postresult = requests.post(
         time_add_url, headers=headers(token), params=params, data=payload
     ).json()
-    click.echo(
-        f"Added to timesheet {postresult['timesheet_entry']['timesheet_id']}."
-    )
-    return postresult['timesheet_entry']['timesheet_id']
+    if postresult['type'] == 'Error':
+        click.echo(f"Failed to add work to timesheet: {postresult['error']}")
+        click.echo(postresult['message'])
+        return None
+    else:
+        click.echo(
+            f"Added to timesheet {postresult['timesheet_entry']['timesheet_id']}."
+        )
+        return postresult['timesheet_entry']['timesheet_id']
 
 
 def submit_timesheet(workspace_id, token, timesheet_id, confirm):
@@ -83,31 +90,32 @@ def submit_timesheet(workspace_id, token, timesheet_id, confirm):
     postresult = requests.post(
         timesheet_submit_url, headers=headers(token)
     ).json()
+    # FIXME: handle error
     click.echo(f"Timesheet {timesheet_id} submitted.\n{postresult}")
     return True
 
 
-@click.group()
+@ click.group()
 def helpme():
     pass
 
 
-@click.command()
-@click.option(
+@ click.command()
+@ click.option(
     "--token", '-t',
     envvar='LP_TOKEN',
     required=True,
     prompt='LP_TOKEN',
     help='Your LP API token'
 )
-@click.option(
+@ click.option(
     "--workspace_id", '-w',
     envvar='LP_WORKSPACE_ID',
     required=True,
     prompt='LP_WORKSPACE_ID',
     help='Your LP workspace ID'
 )
-@click.option(
+@ click.option(
     "--date", '-d',
     help='The date of the work',
     default=datetime.date.today()
@@ -120,7 +128,7 @@ def get_timesheet_entries(workspace_id, token, date):
     timesheets = requests.get(
         timesheets_url, headers=headers(token), params=params
     ).json()
-
+    # FIXME: handle error
     for timesheet in timesheets:
         print(json.dumps(timesheet, indent=4, sort_keys=True))
 
@@ -133,24 +141,24 @@ def get_timesheet_entries(workspace_id, token, date):
     prompt='LP_TOKEN',
     help='Your LP API token'
 )
-@click.option(
+@ click.option(
     "--workspace_id", '-w',
     envvar='LP_WORKSPACE_ID',
     required=True,
     prompt='LP_WORKSPACE_ID',
     help='Your LP workspace ID'
 )
-@click.option(
+@ click.option(
     "--config", '-c',
     help='The YAML file containing your timesheet information',
     required=True,
 )
-@click.option(
+@ click.option(
     '--append/--no-append', '-a',
     default=False,
     help='Append time to existing entries instead of overwriting',
 )
-@click.option(
+@ click.option(
     '--confirm/--no-confirm', '-y',
     default=False,
     help='Prompt for confirmation before adding entries',
@@ -176,9 +184,13 @@ def load_config(workspace_id, token, config, append, confirm):
         ))
     # remove duplicates in list (and None, for non-confirmed additions)
     unique_timesheets = list(set([t for t in timesheets if t is not None]))
-    click.echo(f"Timesheets to submit:\n{unique_timesheets}")
-    for timesheet_id in unique_timesheets:
-        submit_timesheet(workspace_id, token, timesheet_id, confirm)
+    if not unique_timesheets:
+        click.echo('No timesheets to submit.')
+        return
+    else:
+        click.echo(f"Timesheets to submit:\n{unique_timesheets}")
+        for timesheet_id in unique_timesheets:
+            submit_timesheet(workspace_id, token, timesheet_id, confirm)
 
 
 helpme.add_command(get_timesheet_entries)
