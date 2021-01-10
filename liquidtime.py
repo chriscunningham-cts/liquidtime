@@ -56,12 +56,11 @@ def add_timesheet_entry(
         'work_performed_on': work_performed_on,
     }
     click.echo()
-    if not confirm:
-        if not click.confirm(
-            f"Adding the following work:\n{payload}\nDo you want to continue?"
-        ):
-            click.echo('Work not added to timesheet.')
-            return None
+    if not confirm and not click.confirm(
+        f"Adding the following work:\n{payload}\nDo you want to continue?"
+    ):
+        click.echo('Work not added to timesheet.')
+        return None
 
     params = {'append': append}
 
@@ -76,12 +75,11 @@ def add_timesheet_entry(
 
 def submit_timesheet(workspace_id, token, timesheet_id, confirm):
     timesheet_submit_url = f"{api_path}/workspaces/{workspace_id}/timesheets/{timesheet_id}/submit"
-    if not confirm:
-        if not click.confirm(
-            f"Do you want to submit timesheet {timesheet_id} as complete?"
-        ):
-            click.echo('Work not added to timesheet.')
-            return False
+    if not confirm and not click.confirm(
+        f"Do you want to submit timesheet {timesheet_id} as complete?"
+    ):
+        click.echo('Timesheet not submitted.')
+        return False
     postresult = requests.post(
         timesheet_submit_url, headers=headers(token)
     ).json()

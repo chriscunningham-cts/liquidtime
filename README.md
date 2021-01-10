@@ -83,8 +83,7 @@ than one task per day.
 
 ## TODO
 
--   Implement error checking and better positive confirmation rather than
-    crashing on failure and echoing arbitrary responses on success.
+-   Implement error checking rather than crashing on failure.
 -   Permit relative or regular dates in the config file instead of absolute
     ones, e.g. `Monday`.
 -   Implement additional submission fields, e.g. estimates.
