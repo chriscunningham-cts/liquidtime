@@ -83,7 +83,6 @@ than one task per day.
 
 ## TODO
 
--   Add graceful error handling to remaining API calls.
 -   Permit relative or regular dates in the config file instead of absolute
     ones, e.g. `Monday`.
 -   Implement additional submission fields, e.g. estimates.
