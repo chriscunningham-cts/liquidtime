@@ -13,11 +13,7 @@ def headers(token):
     return {'Authorization': f"Bearer {token}"}
 
 
-def get_member_id(token):
-    account_url = f"{api_path}/account"
-    response = requests.get(
-        account_url, headers=headers(token)
-    )
+def handle_errors(response, message):
     if response.status_code is not 200:
         try:
             f = response.json()
@@ -26,49 +22,42 @@ def get_member_id(token):
         except ValueError:
             failure_code = f"HTTP {response.status_code}"
             failure_message = response.text
-        click.echo(
-            f"Failed to get member ID: {failure_code}\n"
+        raise Exception(
+            f"{message}: {failure_code}\n"
             f"{failure_message}"
         )
-        raise ValueError
     else:
-        account = response.json()
-        return account['id']
+        success = response.json()
+        return success
+
+
+def get_member_id(token):
+    account_url = f"{api_path}/account"
+    account = handle_errors(
+        requests.get(account_url, headers=headers(token)),
+        'Failed to get member ID'
+    )
+    return account['id']
 
 
 def find_task(workspace_id, token, query):
     queries_url = f"{api_path}/workspaces/{workspace_id}/treeitems"
     params = {'filter[]': f"name={query.replace(' ', '_')}"}
-    response = requests.get(
-        queries_url, headers=headers(token), params=params
+    results = handle_errors(
+        requests.get(queries_url, headers=headers(token), params=params),
+        'Failed to get tasks'
     )
-    if response.status_code is not 200:
-        try:
-            f = response.json()
-            failure_code = f['error']
-            failure_message = f['message']
-        except ValueError:
-            failure_code = f"HTTP {response.status_code}"
-            failure_message = response.text
-        click.echo(
-            f"Failed to get tasks: {failure_code}\n"
-            f"{failure_message}"
-        )
-        raise ValueError
+    # The activity_id can live at one of two levels
+    toplevel = [
+        result for result in results if result['activity_id'] is not None
+    ]
+    if toplevel:
+        # There is only one activity
+        return toplevel[0]['activity_id'], toplevel[0]['id']
     else:
-        results = response.json()
-
-        # The activity_id can live at one of two levels
-        toplevel = [
-            result for result in results if result['activity_id'] is not None
-        ]
-        if toplevel:
-            # There is only one activity
-            return toplevel[0]['activity_id'], toplevel[0]['id']
-        else:
-            # There are sub-activities, which all have the same activity_id
-            for assignment in results[0]['assignments']:
-                return assignment['activity_id'], results[0]['id']
+        # There are sub-activities, which all have the same activity_id
+        for assignment in results[0]['assignments']:
+            return assignment['activity_id'], results[0]['id']
 
 
 def add_timesheet_entry(
@@ -93,28 +82,16 @@ def add_timesheet_entry(
 
     params = {'append': append}
 
-    response = requests.post(
-        time_add_url, headers=headers(token), params=params, data=payload
+    postresult = handle_errors(
+        requests.post(
+            time_add_url, headers=headers(token), params=params, data=payload
+        ),
+        'Failed to add work to timesheet'
     )
-    if response.status_code is not 200:
-        try:
-            f = response.json()
-            failure_code = f['error']
-            failure_message = f['message']
-        except ValueError:
-            failure_code = f"HTTP {response.status_code}"
-            failure_message = response.text
-        click.echo(
-            f"Failed to add work to timesheet: {failure_code}\n"
-            f"{failure_message}"
-        )
-        raise ValueError
-    else:
-        postresult = response.json()
-        click.echo(
-            f"Added to timesheet {postresult['timesheet_entry']['timesheet_id']}."
-        )
-        return postresult['timesheet_entry']['timesheet_id']
+    click.echo(
+        f"Added to timesheet {postresult['timesheet_entry']['timesheet_id']}."
+    )
+    return postresult['timesheet_entry']['timesheet_id']
 
 
 def submit_timesheet(workspace_id, token, timesheet_id, confirm):
@@ -124,26 +101,12 @@ def submit_timesheet(workspace_id, token, timesheet_id, confirm):
     ):
         click.echo('Timesheet not submitted.')
         return False
-    response = requests.post(
-        timesheet_submit_url, headers=headers(token)
+    postresult = handle_errors(
+        requests.post(timesheet_submit_url, headers=headers(token)),
+        'Failed to submit timesheet'
     )
-    if response.status_code is not 200:
-        try:
-            f = response.json()
-            failure_code = f['error']
-            failure_message = f['message']
-        except ValueError:
-            failure_code = f"HTTP {response.status_code}"
-            failure_message = response.text
-        click.echo(
-            f"Failed to submit timesheet: {failure_code}\n"
-            f"{failure_message}"
-        )
-        raise ValueError
-    else:
-        postresult = response.json()
-        click.echo(f"Timesheet {timesheet_id} submitted.\n{postresult}")
-        return True
+    click.echo(f"Timesheet {timesheet_id} submitted.\n{postresult}")
+    return True
 
 
 @ click.group()
@@ -174,26 +137,12 @@ def get_timesheet_entries(workspace_id, token, date):
     params = {'member_id': get_member_id(token)}
     if date:
         params['start_date'] = params['end_date'] = date
-    response = requests.get(
-        timesheets_url, headers=headers(token), params=params
+    timesheets = handle_errors(
+        requests.get(timesheets_url, headers=headers(token), params=params),
+        'Failed to get timesheet entries'
     )
-    if response.status_code is not 200:
-        try:
-            f = response.json()
-            failure_code = f['error']
-            failure_message = f['message']
-        except ValueError:
-            failure_code = f"HTTP {response.status_code}"
-            failure_message = response.text
-        click.echo(
-            f"Failed to get timesheet entries: {failure_code}\n"
-            f"{failure_message}"
-        )
-        raise ValueError
-    else:
-        timesheets = response.json()
-        for timesheet in timesheets:
-            click.echo(json.dumps(timesheet, indent=4, sort_keys=True))
+    for timesheet in timesheets:
+        click.echo(json.dumps(timesheet, indent=4, sort_keys=True))
 
 
 @ click.command()
