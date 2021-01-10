@@ -14,7 +14,7 @@ def headers(token):
 
 
 def handle_errors(response, message):
-    if response.status_code is not 200:
+    if response.status_code != 200:
         try:
             f = response.json()
             failure_code = f['error']
