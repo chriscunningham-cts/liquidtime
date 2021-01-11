@@ -6,6 +6,9 @@ import json
 import datetime
 import yaml
 
+__description__ = 'Liquid Planner timesheet tool'
+__version__ = 0.1
+
 api_path = 'https://app.liquidplanner.com/api/v1'
 
 
@@ -109,84 +112,77 @@ def submit_timesheet(workspace_id, token, timesheet_id, confirm):
     return True
 
 
-@ click.group()
-def helpme():
-    pass
-
-
-@ click.command()
-@ click.option(
+@click.group()
+@click.version_option(prog_name=__description__, version=__version__)
+@click.option(
     "--token", '-t',
     envvar='LP_TOKEN', prompt='LP_TOKEN',
     required=True,
     help='Your LP API token',
 )
-@ click.option(
+@click.option(
     "--workspace_id", '-w',
     envvar='LP_WORKSPACE_ID', prompt='LP_WORKSPACE_ID',
     required=True,
     help='Your LP workspace ID',
 )
-@ click.option(
+@click.pass_context
+def cli(ctx, token, workspace_id):
+    ctx.obj = {'workspace_id': workspace_id, 'token': token}
+
+
+@click.command()
+@click.option(
     "--date", '-d',
     default=datetime.date.today(),
     help='The date of the work',
 )
-def get_timesheet_entries(workspace_id, token, date):
-    timesheets_url = f"{api_path}/workspaces/{workspace_id}/timesheet_entries"
-    params = {'member_id': get_member_id(token)}
+@click.pass_context
+def get_timesheet_entries(ctx, date):
+    timesheets_url = f"{api_path}/workspaces/{ctx.obj['workspace_id']}/timesheet_entries"
+    params = {'member_id': get_member_id(ctx.obj['token'])}
     if date:
         params['start_date'] = params['end_date'] = date
     timesheets = handle_errors(
-        requests.get(timesheets_url, headers=headers(token), params=params),
+        requests.get(timesheets_url, headers=headers(
+            ctx.obj['token']), params=params),
         'Failed to get timesheet entries'
     )
     for timesheet in timesheets:
         click.echo(json.dumps(timesheet, indent=4, sort_keys=True))
 
 
-@ click.command()
-@ click.option(
-    "--token", '-t',
-    envvar='LP_TOKEN', prompt='LP_TOKEN',
-    required=True,
-    help='Your LP API token',
-)
-@ click.option(
-    "--workspace_id", '-w',
-    envvar='LP_WORKSPACE_ID', prompt='LP_WORKSPACE_ID',
-    required=True,
-    help='Your LP workspace ID',
-)
-@ click.option(
+@click.command()
+@click.option(
     "--config", '-c',
     required=True,
     help='The YAML file containing your timesheet information',
 )
-@ click.option(
+@click.option(
     '--append/--no-append', '-a',
     default=False,
     help='Append time to existing entries instead of overwriting',
 )
-@ click.option(
+@click.option(
     '--confirm/--no-confirm', '-y',
     default=False,
     help='Prompt for confirmation before adding entries',
 )
-def load_config(workspace_id, token, config, append, confirm):
+@click.pass_context
+def load_config(ctx, config, append, confirm):
     with open(config, 'r') as stream:
         bulk_data = yaml.safe_load(stream)
 
     timesheets = []
     for task in bulk_data['tasks']:
         activity_id, task_id = find_task(
-            workspace_id, token, task['task_name']
+            ctx.obj['workspace_id'], ctx.obj['token'], task['task_name']
         )
         note = task['note'] if 'note' in task else None
         work = task['work']
         work_performed_on = task['work_performed_on']
         timesheets.append(add_timesheet_entry(
-            workspace_id, token, activity_id, task_id,
+            ctx.obj['workspace_id'], ctx.obj['token'], activity_id, task_id,
             note, work, work_performed_on, append, confirm
         ))
     # Remove duplicates in list (and None, for non-confirmed additions)
@@ -197,8 +193,11 @@ def load_config(workspace_id, token, config, append, confirm):
     else:
         click.echo(f"Timesheets to submit:\n{unique_timesheets}")
         for timesheet_id in unique_timesheets:
-            submit_timesheet(workspace_id, token, timesheet_id, confirm)
+            submit_timesheet(
+                ctx.obj['workspace_id'],
+                ctx.obj['token'], timesheet_id, confirm
+            )
 
 
-helpme.add_command(get_timesheet_entries)
-helpme.add_command(load_config)
+cli.add_command(get_timesheet_entries)
+cli.add_command(load_config)

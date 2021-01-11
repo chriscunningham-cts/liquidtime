@@ -6,10 +6,12 @@ setup(
     version='0.1',
     py_modules=['liquidtime'],
     install_requires=[
-        'Click',
+        'requests',
+        'click',
+        'pyyaml'
     ],
     entry_points='''
         [console_scripts]
-        liquidtime=liquidtime:helpme
+        liquidtime=liquidtime:cli
     ''',
 )
