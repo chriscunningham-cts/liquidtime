@@ -7,7 +7,6 @@ timesheets. It was written for internal use by [CTS](https://cts.co).
 
 -   Clone this repository
 -   Change to its root directory (or open it in a vscode dev container)
--   Run `pip install -r requirements.txt`
 -   Run `python setup.py bdist_wheel`
 -   Run `pip install dist/liquidtime*.whl`
 
