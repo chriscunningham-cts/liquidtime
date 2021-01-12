@@ -4,7 +4,7 @@ from setuptools import setup
 setup(
     name='liquidtime',
     version='0.1',
-    py_modules=['liquidtime'],
+    packages=['liquidtime'],
     install_requires=[
         'requests',
         'click',
