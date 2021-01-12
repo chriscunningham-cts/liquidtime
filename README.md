@@ -85,8 +85,6 @@ than one task per day.
 -   Permit relative or regular dates in the config file instead of absolute
     ones, e.g. `Monday`.
 -   Implement additional submission fields, e.g. estimates.
--   Add unit tests.
--   Make Click configuration more idiomatic.
 -   Push to PyPI.
 
 ## Authors
