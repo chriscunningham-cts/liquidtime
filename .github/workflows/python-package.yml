@@ -39,3 +39,4 @@ jobs:
         env:
           LP_TOKEN: ${{ secrets.LP_TOKEN }}
           LP_WORKSPACE_ID: ${{ secrets.LP_WORKSPACE_ID }}
+          LP_MEMBER_ID: ${{ secrets.LP_MEMBER_ID }}
