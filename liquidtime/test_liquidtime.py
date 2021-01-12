@@ -22,4 +22,4 @@ def test_headers():
 
 
 def test_get_member_id():
-    assert lq.get_member_id(token) == member_id
+    assert lq.get_member_id(token) == int(member_id)
