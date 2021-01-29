@@ -17,21 +17,20 @@ def headers(token):
 
 
 def handle_errors(response, message):
-    if response.status_code != 200:
-        try:
-            f = response.json()
-            failure_code = f['error']
-            failure_message = f['message']
-        except ValueError:
-            failure_code = f"HTTP {response.status_code}"
-            failure_message = response.text
-        raise Exception(
-            f"{message}: {failure_code}\n"
-            f"{failure_message}"
-        )
-    else:
-        success = response.json()
-        return success
+    if response.status_code == 200:
+        return response.json()
+
+    try:
+        f = response.json()
+        failure_code = f['error']
+        failure_message = f['message']
+    except ValueError:
+        failure_code = f"HTTP {response.status_code}"
+        failure_message = response.text
+    raise Exception(
+        f"{message}: {failure_code}\n"
+        f"{failure_message}"
+    )
 
 
 def get_member_id(token):
@@ -189,7 +188,7 @@ def load_config(ctx, config, append, confirm):
             note, work, work_performed_on, append, confirm
         ))
     # Remove duplicates in list (and None, for non-confirmed additions)
-    unique_timesheets = list(set([t for t in timesheets if t is not None]))
+    unique_timesheets = list({t for t in timesheets if t is not None})
     if not unique_timesheets:
         click.echo('No timesheets to submit.')
         return
