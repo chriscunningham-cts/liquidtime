@@ -58,9 +58,12 @@ def find_task(workspace_id, token, query):
         # There is only one activity
         return toplevel[0]['activity_id'], toplevel[0]['id']
     else:
-        # There are sub-activities, which all have the same activity_id
-        for assignment in results[0]['assignments']:
-            return assignment['activity_id'], results[0]['id']
+        # There are sub-activities, which all have the same activity_id (if it
+        # is set, but it can be null)
+        for result in results:
+            for assignment in result['assignments']:
+                if assignment['activity_id'] is not None:
+                    return assignment['activity_id'], results[0]['id']
 
 
 def add_timesheet_entry(
