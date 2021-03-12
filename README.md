@@ -20,7 +20,7 @@ timesheets. It was written for internal use by [CTS](https://cts.co).
 
 You can immediately test if it's working by querying your current timesheet:
 
-```bash
+```sh
 liquidtime get-timesheet-entries --token XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
 ```
 
@@ -35,7 +35,7 @@ token in every time.
 
 Run `liquidtime` for runtime documentation.
 
-```
+```sh
 liquidtime
 Usage: liquidtime [OPTIONS] COMMAND [ARGS]...
 

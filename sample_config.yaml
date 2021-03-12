@@ -1,17 +1,17 @@
 ---
 tasks:
-  - task_name: Produce the Agile Stream 1 Implementation Plan
+  - task_name: Learning
     work: 8
-    work_performed_on: "2021-01-11"
-  - task_name: Produce the Agile Stream 1 Implementation Plan
+    work_performed_on: "2021-03-08"
+  - task_name: Learning
     work: 8
-    work_performed_on: "2021-01-12"
-  - task_name: Produce the Agile Stream 1 Implementation Plan
+    work_performed_on: "2021-03-09"
+  - task_name: Learning
     work: 8
-    work_performed_on: "2021-01-13"
-  - task_name: Produce the Agile Stream 1 Implementation Plan
+    work_performed_on: "2021-03-10"
+  - task_name: LZ Deployment
     work: 8
-    work_performed_on: "2021-01-14"
-  - task_name: Produce the Agile Stream 1 Implementation Plan
+    work_performed_on: "2021-03-11"
+  - task_name: Learning
     work: 8
-    work_performed_on: "2021-01-15"
+    work_performed_on: "2021-03-12"

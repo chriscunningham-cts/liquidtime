@@ -1,0 +1,24 @@
+repos:
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v3.4.0
+  hooks:
+  -   id: check-yaml
+  -   id: end-of-file-fixer
+  -   id: trailing-whitespace
+  -   id: check-docstring-first
+  -   id: check-merge-conflict
+  -   id: mixed-line-ending
+      args: [--fix=lf]
+- repo: https://github.com/ambv/black
+  rev: 20.8b1
+  hooks:
+    - id: black
+- repo: https://github.com/Yelp/detect-secrets
+  rev: v1.0.3
+  hooks:
+    - id: detect-secrets
+      args: ["--baseline", ".secrets.baseline"]
+- repo: git://github.com/chriscunningham-cts/pre-commit-terraform
+  rev: v2.0.2
+  hooks:
+    - id: markdownlint
