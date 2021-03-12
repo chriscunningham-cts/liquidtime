@@ -45,6 +45,7 @@ Options:
 Commands:
   get-timesheet-entries
   load-config
+  find-task
 ```
 
 The primary command is `liquidtime load-config -c <configfile>`, which will
@@ -61,6 +62,17 @@ existing work on a particular day.
 Once add work has been added, the tool will prompt you to submit any timesheets
 it has added to. Note that this prevents further additions, so only do this
 once you're ready to submit a complete timesheet.
+
+**NOTE**: the tool will only be able to find tasks which have an available
+`activity_id`. It appears that you need to submit at least one timesheet for
+the task in question before this can be retrieved. You can check if your task
+entry has an associated `activity_id` using the `find-task` command as follows:
+
+```sh
+liquidtime find-task -q 'LZ Deployment'
+```
+
+run `export LP_DEBUG=1` to enable further debug output.
 
 ## Timesheet files
 
@@ -85,6 +97,9 @@ than one task per day.
 -   Permit relative or regular dates in the config file instead of absolute
     ones, e.g. `Monday`.
 -   Implement additional submission fields, e.g. estimates.
+-   Fix passing options to both the tool and sub-commands through flags (at
+    present, passing flags to both fails, so global options need to be set
+    through environment variables or prompts if subcommand optionss are used).
 -   Push to PyPI.
 
 ## Authors

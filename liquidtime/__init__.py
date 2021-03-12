@@ -5,9 +5,10 @@ import click
 import json
 import datetime
 import yaml
+import sys
 
 __description__ = "Liquid Planner timesheet tool"
-__version__ = 0.1
+__version__ = 0.2
 
 api_path = "https://app.liquidplanner.com/api/v1"
 
@@ -36,27 +37,6 @@ def get_member_id(token):
         requests.get(account_url, headers=headers(token)), "Failed to get member ID"
     )
     return account["id"]
-
-
-def find_task(workspace_id, token, query):
-    queries_url = f"{api_path}/workspaces/{workspace_id}/treeitems"
-    params = {"filter[]": f"name={query.replace(' ', '_')}"}
-    results = handle_errors(
-        requests.get(queries_url, headers=headers(token), params=params),
-        "Failed to get tasks",
-    )
-    # The activity_id can live at one of two levels
-    toplevel = [result for result in results if result["activity_id"] is not None]
-    if toplevel:
-        # There is only one activity
-        return toplevel[0]["activity_id"], toplevel[0]["id"]
-    else:
-        # There are sub-activities, which all have the same activity_id (if it
-        # is set, but it can be null)
-        for result in results:
-            for assignment in result["assignments"]:
-                if assignment["activity_id"] is not None:
-                    return assignment["activity_id"], results[0]["id"]
 
 
 def add_timesheet_entry(
@@ -133,9 +113,10 @@ def submit_timesheet(workspace_id, token, timesheet_id, confirm):
     required=True,
     help="Your LP workspace ID",
 )
+@click.option("--debug", envvar="LP_DEBUG", help="Enable debug output")
 @click.pass_context
-def cli(ctx, token, workspace_id):
-    ctx.obj = {"workspace_id": workspace_id, "token": token}
+def cli(ctx, token, workspace_id, debug):
+    ctx.obj = {"workspace_id": workspace_id, "token": token, "debug": debug}
 
 
 @click.command()
@@ -187,9 +168,7 @@ def load_config(ctx, config, append, confirm):
 
     timesheets = []
     for task in bulk_data["tasks"]:
-        activity_id, task_id = find_task(
-            ctx.obj["workspace_id"], ctx.obj["token"], task["task_name"]
-        )
+        activity_id, task_id = find_task(ctx, task["task_name"])
         note = task["note"] if "note" in task else None
         work = task["work"]
         work_performed_on = task["work_performed_on"]
@@ -219,5 +198,42 @@ def load_config(ctx, config, append, confirm):
             )
 
 
+@click.command()
+@click.option(
+    "--query",
+    "-q",
+    required=True,
+    help="The search query for the task",
+)
+@click.pass_context
+def find_task(ctx, query):
+    queries_url = f"{api_path}/workspaces/{ctx.obj['workspace_id']}/treeitems"
+    params = {"filter[]": f"name={query.replace(' ', '_')}"}
+    results = handle_errors(
+        requests.get(queries_url, headers=headers(ctx.obj["token"]), params=params),
+        "Failed to get tasks",
+    )
+    if ctx.obj["debug"]:
+        click.echo(results)
+    # The activity_id can live at one of two levels
+    toplevel = [result for result in results if result["activity_id"] is not None]
+    if toplevel:
+        # There is only one activity
+        task_id = toplevel[0]["activity_id"], toplevel[0]["id"]
+    else:
+        # There are sub-activities, which all have the same activity_id (if it
+        # is set, but it can be null)
+        for result in results:
+            for assignment in result["assignments"]:
+                if assignment["activity_id"] is not None:
+                    task_id = assignment["activity_id"], results[0]["id"]
+    try:
+        click.echo(f"Found the following task ID for query '{query}': {task_id}")
+        return task_id
+    except UnboundLocalError:
+        sys.exit(f"Fatal: no task ID found for query '{query}'")
+
+
 cli.add_command(get_timesheet_entries)
 cli.add_command(load_config)
+cli.add_command(find_task)
